@@ -1,0 +1,129 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: ["feature/ghworkflow", "main"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  commons:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      #- name: Build the Docker image
+      #  run: docker build -f ./images/commons/Dockerfile -t vscode-commons:$(date +%s) ./images/commons/.
+      - name: Push to GitHub Packages
+        uses: docker/build-push-action@v1.1.0
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: legovaer/vscode-devcontainers/commons
+          dockerfile: ./images/commons/Dockerfile
+          path: ./images/commons/.
+          tag_with_ref: false
+          add_git_labels: true
+          tags: latest
+  commonsgolang:
+    runs-on: ubuntu-latest
+    needs: commons
+    steps:
+      - uses: actions/checkout@v2
+      - name: Push to GitHub Packages
+        uses: docker/build-push-action@v1.1.0
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: legovaer/vscode-devcontainers/commons-golang
+          dockerfile: ./images/commons-golang/Dockerfile
+          path: ./images/commons-golang/.
+          tag_with_ref: false
+          add_git_labels: true
+          tags: latest
+  devgolang:
+    runs-on: ubuntu-latest
+    needs: commonsgolang
+    steps:
+      - uses: actions/checkout@v2
+      - name: Push to GitHub Packages
+        uses: docker/build-push-action@v1.1.0
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: legovaer/vscode-devcontainers/golang
+          dockerfile: ./images/dev-golang/Dockerfile
+          path: ./images/dev-golang/.
+          tag_with_ref: false
+          add_git_labels: true
+          tags: latest
+  devops:
+    runs-on: ubuntu-latest
+    needs: devgolang
+    steps:
+      - uses: actions/checkout@v2
+      - name: Push to GitHub Packages
+        uses: docker/build-push-action@v1.1.0
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: legovaer/vscode-devcontainers/devops
+          dockerfile: ./images/devops/Dockerfile
+          path: ./images/devops/.
+          tag_with_ref: false
+          add_git_labels: true
+          tags: latest
+  npm:
+    runs-on: ubuntu-latest
+    needs: devgolang
+    steps:
+      - uses: actions/checkout@v2
+      - name: Push to GitHub Packages
+        uses: docker/build-push-action@v1.1.0
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: legovaer/vscode-devcontainers/npm
+          dockerfile: ./images/npm/Dockerfile
+          path: ./images/npm/.
+          tag_with_ref: false
+          add_git_labels: true
+          tags: latest
+  python:
+    runs-on: ubuntu-latest
+    needs: devgolang
+    steps:
+      - uses: actions/checkout@v2
+      - name: Push to GitHub Packages
+        uses: docker/build-push-action@v1.1.0
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: legovaer/vscode-devcontainers/python
+          dockerfile: ./images/python/Dockerfile
+          path: ./images/python/.
+          tag_with_ref: false
+          add_git_labels: true
+          tags: latest
+  k8soperator:
+    runs-on: ubuntu-latest
+    needs: [devgolang, devops]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Push to GitHub Packages
+        uses: docker/build-push-action@v1.1.0
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: legovaer/vscode-devcontainers/k8s-operator
+          dockerfile: ./images/k8sOperator/Dockerfile
+          path: ./images/k8sOperator/.
+          tag_with_ref: false
+          add_git_labels: true
+          tags: latest
